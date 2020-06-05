@@ -108,6 +108,7 @@
     [snd_pcm_open ((* snd-pcm*) string int int) int]
     [snd-pcm-close (snd-pcm*) int]
 
+    ;; https://www.alsa-project.org/alsa-doc/alsa-lib/group___p_c_m___h_w___params.html
     [snd-pcm-hw-params-sizeof () size_t]
     [snd-pcm-hw-params-any (snd-pcm* snd-pcm-hw-params*) int]
     [snd-pcm-hw-params (snd-pcm* snd-pcm-hw-params*) int]
@@ -166,29 +167,34 @@
     (lambda (hw-params)
       (alloc ([rate &rate unsigned 1]
               [dir &dir int 1])
+        (ftype-set! int () &dir 0)	; just in case.
         (let ([rc (snd_pcm_hw_params_get_rate hw-params &rate &dir)])
           (cond
             [(< rc 0)
              (error #f (snd-strerror rc) rc)]
             [else
-              (cons (ftype-ref unsigned () &rate 0) (snd-pcm-stream (ftype-ref int () &dir 0)))])))))
+              ;; dir: 0 == hw set to requested rate, 1 == <, 2 == >.
+              (cons (ftype-ref unsigned () &rate 0) (ftype-ref int () &dir 0))])))))
 
   (define snd-pcm-hw-params-set-rate-near
     (lambda (handle hw-params rate dir)
       (alloc ([rate* &rate unsigned 1]
               [dir* &dir int 1])
         (ftype-set! unsigned () &rate rate)
-        (ftype-set! int () &dir (snd-pcm-stream dir))
+        (ftype-set! int () &dir 0)	; request exact.
         (let ([rc (snd_pcm_hw_params_set_rate_near handle hw-params &rate &dir)])
           (cond
             [(< rc 0)
              (error #f (snd-strerror rc) rc)]
             [else
-              (cons (ftype-ref unsigned () &rate 0) (snd-pcm-stream (ftype-ref int () &dir 0)))])))))
+              ;; rate is in Hz.
+              ;; dir: 0 == hw able to set requested rate, 1 == <, 2 == >.
+              ;; I've yet to see any sample code use 'dir' yet. It's a candidate for ignoring.
+              (cons (ftype-ref unsigned () &rate 0) (ftype-ref int () &dir 0))])))))
 
   (define snd-pcm-hw-params-set-rate
     (lambda (handle hw-params rate dir)
-      (snd_pcm_hw_params_set_rate handle hw-params rate (snd-pcm-stream dir))))
+      (snd_pcm_hw_params_set_rate handle hw-params rate dir)))
 
   (define snd-pcm-hw-params-mallocz
     (lambda ()
