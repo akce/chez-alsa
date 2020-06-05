@@ -22,6 +22,7 @@
     snd-pcm-hw-params-set-rate-near
 
     snd-pcm-stream
+    snd-open-mode
     snd-pcm-access
     snd-pcm-format
 
@@ -40,6 +41,15 @@
   (c-enum snd-pcm-stream
     [playback	0]
     capture)
+
+  (c-bitmap snd-open-mode
+    [nonblock		#x00001]
+    [async		#x00002]
+    [abort		#x08000]	; internal
+    [no-auto-resample	#x10000]
+    [no-auto-channels	#x20000]
+    [no-auto-format	#x40000]
+    [no-softvol		#x80000])
 
   (c-enum snd-pcm-access
     [mmap-interleaved	0]
