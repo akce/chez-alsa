@@ -1,3 +1,4 @@
+;; https://www.alsa-project.org/alsa-doc/alsa-lib/pcm.html
 (library (alsa pcm)
   (export
     ;; TODO snd-strerror belongs in (alsa error).
@@ -5,6 +6,8 @@
 
     snd-pcm-open
     snd-pcm-close
+
+    snd-pcm-set-params
 
     snd-pcm-hw-params-mallocz
     snd-pcm-hw-params-free
@@ -27,6 +30,17 @@
     snd-pcm-format
 
     snd-pcm-format-name
+
+    snd-pcm-state
+    snd-pcm-state-t
+    snd-pcm-prepare
+    snd-pcm-start
+    snd-pcm-drop
+    snd-pcm-drain
+    snd-pcm-recover
+    snd-pcm-writei
+    snd-pcm-writei/bv
+    snd-pcm-wait
     )
   (import
     (chezscheme)
@@ -112,12 +126,24 @@
     dsd-u16-be
     dsd-u32-be)
 
+  (c-enum snd-pcm-state-t
+    [open	0]
+    setup
+    prepared
+    running
+    xrun
+    draining
+    paused
+    suspended
+    disconnected)
+
   (c-function
     [snd-strerror (int) string]
 
     [snd_pcm_open ((* snd-pcm*) string int int) int]
     [snd-pcm-close (snd-pcm*) int]
 
+    [snd-pcm-set-params (snd-pcm* int int unsigned unsigned int unsigned) int]
     ;; https://www.alsa-project.org/alsa-doc/alsa-lib/group___p_c_m___h_w___params.html
     [snd-pcm-hw-params-sizeof () size_t]
     [snd-pcm-hw-params-any (snd-pcm* snd-pcm-hw-params*) int]
@@ -135,6 +161,15 @@
 
     ;; included mainly to test snd-pcm-format definitions..
     [snd-pcm-format-name (int) string]
+
+    [snd-pcm-state (snd-pcm*) int]
+    [snd-pcm-prepare (snd-pcm*) int]
+    [snd-pcm-start (snd-pcm*) int]
+    [snd-pcm-drop (snd-pcm*) int]
+    [snd-pcm-drain (snd-pcm*) int]
+    [snd-pcm-recover (snd-pcm* int int) int]
+    [snd-pcm-writei (snd-pcm* void* unsigned-long) long]
+    [snd-pcm-wait (snd-pcm* int) int]
     )
 
   (define snd-pcm-open
@@ -212,4 +247,11 @@
         (bzero (foreign-alloc sz) sz))))
 
   (define snd-pcm-hw-params-free foreign-free)
+
+  (define snd-pcm-writei/bv
+    (lambda (handle bv)
+      (let ([sz (bytevector-length bv)])
+        (alloc ([buf &buf unsigned-8 sz])
+          (bv->u8* bv buf sz)
+          (snd-pcm-writei handle buf sz)))))
   )
