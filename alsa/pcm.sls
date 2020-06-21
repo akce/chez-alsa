@@ -249,9 +249,9 @@
   (define snd-pcm-hw-params-free foreign-free)
 
   (define snd-pcm-writei/bv
-    (lambda (handle bv)
+    (lambda (handle bv frame-count)
       (let ([sz (bytevector-length bv)])
         (alloc ([buf &buf unsigned-8 sz])
           (bv->u8* bv buf sz)
-          (snd-pcm-writei handle buf sz)))))
+          (snd-pcm-writei handle buf frame-count)))))
   )
