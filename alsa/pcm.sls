@@ -59,6 +59,7 @@
     snd-pcm-writei
     #;snd-pcm-writei/bv
     snd-pcm-wait
+    snd-pcm-pause
 
     snd-pcm-poll-descriptors-count
     snd-pcm-poll-descriptors
@@ -247,6 +248,7 @@
     [snd-pcm-recover (snd-pcm* int int) int]
     [snd-pcm-writei (snd-pcm* (* unsigned-8) unsigned-long) long]
     [snd-pcm-wait (snd-pcm* int) int]
+    [snd-pcm-pause (snd-pcm* boolean) int]
 
     [snd-pcm-poll-descriptors-count (snd-pcm*) int]
     [snd-pcm-poll-descriptors (snd-pcm* (* pollfd) unsigned) int]
