@@ -20,7 +20,7 @@
 
 (define main
   (lambda ()
-    (let ([handle (snd-pcm-open device (snd-pcm-stream 'playback) 0)])
+    (let ([handle (snd-pcm-open device 'playback 0)])
       (snd-pcm-set-params handle (snd-pcm-format 'u8) (snd-pcm-access 'rw-interleaved) 1 48000 1 500000)
       (do ([i 0 (+ i 1)])
         ((= i 16))

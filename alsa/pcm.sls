@@ -42,7 +42,7 @@
     snd-pcm-sw-params-get-start-threshold
     snd-pcm-sw-params-set-start-threshold
 
-    snd-pcm-stream
+    snd-pcm-stream-t
     snd-open-mode
     snd-pcm-access
     snd-pcm-format
@@ -68,6 +68,8 @@
     snd-pcm-avail-update
     snd-pcm-poll-descriptors-alloc
     snd-pcm-poll-descriptors-free
+    snd-pcm-stream
+    snd-pcm-type
     )
   (import
     (chezscheme)
@@ -82,7 +84,40 @@
   (define-ftype snd-pcm-frames-t long)
   (define-ftype snd-pcm-uframes-t unsigned-long)
 
-  (c-enum snd-pcm-stream
+  (c-enum snd-pcm-type-t
+    [hw		0]
+    hooks
+    multi
+    file
+    null
+    shm
+    inet
+    copy
+    linear
+    alaw
+    mulaw
+    adpcm
+    rate
+    route
+    plug
+    share
+    meter
+    mix
+    droute
+    lbserver
+    linear-float
+    ladspa
+    dmix
+    jack
+    dsnoop
+    dshare
+    iec958
+    softvol
+    ioplug
+    extplug
+    mmap-emul)
+
+  (c-enum snd-pcm-stream-t
     [playback	0]
     capture)
 
@@ -255,12 +290,15 @@
     [snd_pcm_poll_descriptors_revents (snd-pcm* (* pollfd) unsigned (* unsigned-short)) int]
 
     [snd-pcm-avail-update (snd-pcm*) snd-pcm-frames-t]
+
+    [snd_pcm_stream (snd-pcm*) int]
+    [snd_pcm_type (snd-pcm*) int]
     )
 
   (define snd-pcm-open
     (lambda (name stream mode)
       (alloc ([handle &handle snd-pcm* 1])
-        (let ([rc (snd_pcm_open &handle name stream mode)])
+        (let ([rc (snd_pcm_open &handle name (snd-pcm-stream-t stream) (if (number? mode) mode (snd-open-mode mode)))])
           (cond
             [(< rc 0)
              (error #f (snd-strerror rc) rc)]
@@ -442,4 +480,12 @@
         (alloc ([buf &buf unsigned-8 sz])
           (bv->u8* bv buf sz)
           (snd-pcm-writei handle buf frame-count)))))
+
+    (define snd-pcm-stream
+      (lambda (handle)
+        (snd-pcm-stream-t (snd_pcm_stream handle))))
+
+    (define snd-pcm-type
+      (lambda (handle)
+        (snd-pcm-type-t (snd_pcm_type handle))))
   )
